@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <mvc:cors>
+        <mvc:mapping path="/users/**"
+                     allowed-origins="*"
+                     allowed-methods="GET, POST, PUT,DELETE"
+        />
+
+        <mvc:mapping path="/resources/**"
+                     allowed-origins="http://domain1.com" />
+    </mvc:cors>
+
+    <context:component-scan base-package="com.amu" />
+
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters" >
+            <list>
+                <ref bean="stringHttpMessageConverter"/>
+                <ref bean="mappingJacksonHttpMessageConverter" />
+            </list>
+        </property>
+    </bean>
+    <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter">
+        <constructor-arg name="defaultCharset" value="utf-8" />
+        <property name="writeAcceptCharset" value="false" />
+    </bean>
+    <bean id="mappingJacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+
+    </bean>
+
+    <bean class="org.apache.tomcat.jdbc.pool.PoolProperties" id="poolProperties" p:url="jdbc:mysql://localhost:3306/test?characterEncoding=UTF-8"
+    p:username="root" p:password="" p:driverClassName="com.mysql.cj.jdbc.Driver">
+    </bean>
+
+    <bean class="org.apache.tomcat.jdbc.pool.DataSource" p:poolProperties-ref="poolProperties"
+          id="dataSource"/>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" p:mapperLocations="classpath:mappers/**">
+        <property name="dataSource" ref="dataSource" />
+        <!--<property name="configLocation" value="classpath:mybatis-config.xml" />-->
+    </bean>
+
+<!--
+    <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="com.amu.mappers.UserMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+-->
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.amu.mappers" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+    </bean>
+
+    <mvc:annotation-driven/>
+</beans>
